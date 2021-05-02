@@ -73,7 +73,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:backgroundTint="@color/material_on_primary_emphasis_high_type"
-                android:text="/"
+                android:text="÷"
                 android:textColor="@color/material_on_surface_emphasis_high_type"
                 android:textSize="18sp" />
 

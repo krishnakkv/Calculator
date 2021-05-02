@@ -9,6 +9,7 @@ import android.widget.TextView
 class MainActivity : AppCompatActivity() {
 
     var new:Boolean = true
+    var operator: Boolean =false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,7 +23,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun clickListeners() {
-
 
         val result:TextView = findViewById(R.id.result)
 
@@ -77,23 +77,24 @@ class MainActivity : AppCompatActivity() {
             result.text=outText(b0.text.toString())
         }
         bAdd.setOnClickListener {
-            result.text=result.text.toString()+bAdd.text.toString()
+            result.text=operatorFun(bAdd.text.toString())
         }
         bSubtract.setOnClickListener {
-            result.text=result.text.toString()+bSubtract.text.toString()
+            result.text=operatorFun(bSubtract.text.toString())
         }
         bMultiply.setOnClickListener {
-            result.text=result.text.toString()+bMultiply.text.toString()
+            result.text=operatorFun(bMultiply.text.toString())
         }
         bDivide.setOnClickListener {
-            result.text=result.text.toString()+bDivide.text.toString()
+            result.text=operatorFun(bDivide.text.toString())
         }
         bPercent.setOnClickListener {
-            result.text=result.text.toString()+bPercent.text.toString()
+            result.text=operatorFun(bPercent.text.toString())
         }
         bAC.setOnClickListener {
             result.text="0"
             new=true
+            operator=false
         }
         bEquals.setOnClickListener {
             // function to execute the question var to be added in all digits and here
@@ -106,18 +107,29 @@ class MainActivity : AppCompatActivity() {
             else{
                 result.text = c1.take(c1.length - 1)
             }
+            operator=false
         }
         bDot.setOnClickListener {
             result.text=result.text.toString()+bDot.text.toString()
         }
 
+    }
 
-
+    private fun operatorFun(inputText: String): CharSequence? {
+        val result:TextView = findViewById(R.id.result)
+        if (!operator){
+            operator = true
+            return result.text.toString()+inputText
+        }
+        else{
+            return result.text.toString().take(result.text.length - 1) + inputText
+        }
     }
 
     private fun outText(inputText: String): CharSequence? {
         val result:TextView = findViewById(R.id.result)
         new=false
+        operator=false
         val temp : String = result.text.toString()+inputText
         if(result.text.toString().take(1) == "0"){
             return temp.takeLast(temp.length -1)
