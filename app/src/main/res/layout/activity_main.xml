@@ -13,6 +13,7 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="8dp"
+        android:maxWidth="300dp"
         android:text="0"
         android:textSize="30sp"
         app:layout_constraintBottom_toTopOf="@+id/tableMain"

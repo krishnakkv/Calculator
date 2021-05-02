@@ -7,6 +7,9 @@ import android.widget.TextView
 
 
 class MainActivity : AppCompatActivity() {
+
+    var new:Boolean = true
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -19,6 +22,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun clickListeners() {
+
+
         val result:TextView = findViewById(R.id.result)
 
         val b1: Button = findViewById(R.id.one)
@@ -42,34 +47,34 @@ class MainActivity : AppCompatActivity() {
         val bAC: Button = findViewById(R.id.ac)
 
         b1.setOnClickListener {
-            result.text=result.text.toString()+b1.text.toString()
+            result.text=outText(b1.text.toString())
         }
         b2.setOnClickListener {
-            result.text=result.text.toString()+b2.text.toString()
+            result.text=outText(b2.text.toString())
         }
         b3.setOnClickListener {
-            result.text=result.text.toString()+b3.text.toString()
+            result.text=outText(b3.text.toString())
         }
         b4.setOnClickListener {
-            result.text=result.text.toString()+b4.text.toString()
+            result.text=outText(b4.text.toString())
         }
         b5.setOnClickListener {
-            result.text=result.text.toString()+b5.text.toString()
+            result.text=outText(b5.text.toString())
         }
         b6.setOnClickListener {
-            result.text=result.text.toString()+b6.text.toString()
+            result.text=outText(b6.text.toString())
         }
         b7.setOnClickListener {
-            result.text=result.text.toString()+b7.text.toString()
+            result.text=outText(b7.text.toString())
         }
         b8.setOnClickListener {
-            result.text=result.text.toString()+b8.text.toString()
+            result.text=outText(b8.text.toString())
         }
         b9.setOnClickListener {
-            result.text=result.text.toString()+b9.text.toString()
+            result.text=outText(b9.text.toString())
         }
         b0.setOnClickListener {
-            result.text=result.text.toString()+b0.text.toString()
+            result.text=outText(b0.text.toString())
         }
         bAdd.setOnClickListener {
             result.text=result.text.toString()+bAdd.text.toString()
@@ -88,16 +93,35 @@ class MainActivity : AppCompatActivity() {
         }
         bAC.setOnClickListener {
             result.text="0"
+            new=true
         }
         bEquals.setOnClickListener {
             // function to execute the question var to be added in all digits and here
         }
         bClear.setOnClickListener {
-            result.text=result.text.toString().take(result.text.toString().length -1)
+            var c1=result.text.toString()
+            if (c1.length == 1) {
+                result.text ="0"
+            }
+            else{
+                result.text = c1.take(c1.length - 1)
+            }
         }
         bDot.setOnClickListener {
             result.text=result.text.toString()+bDot.text.toString()
         }
 
+
+
+    }
+
+    private fun outText(inputText: String): CharSequence? {
+        val result:TextView = findViewById(R.id.result)
+        new=false
+        val temp : String = result.text.toString()+inputText
+        if(result.text.toString().take(1) == "0"){
+            return temp.takeLast(temp.length -1)
+        }
+        return temp
     }
 }
