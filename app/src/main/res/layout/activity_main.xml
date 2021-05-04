@@ -6,6 +6,15 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <TextView
+        android:id="@+id/expression"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:maxWidth="300dp"
+        android:textSize="30sp"
+        app:layout_constraintBottom_toTopOf="@+id/result"
+        app:layout_constraintEnd_toEndOf="@+id/result" />
 
     <TextView
         android:id="@+id/result"
@@ -15,7 +24,7 @@
         android:layout_marginBottom="8dp"
         android:maxWidth="300dp"
         android:text="0"
-        android:textSize="30sp"
+        android:textSize="40sp"
         app:layout_constraintBottom_toTopOf="@+id/tableMain"
         app:layout_constraintEnd_toEndOf="parent" />
 
@@ -73,7 +82,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:backgroundTint="@color/material_on_primary_emphasis_high_type"
-                android:text="/"
+                android:text="÷"
                 android:textColor="@color/material_on_surface_emphasis_high_type"
                 android:textSize="18sp" />
 
@@ -122,7 +131,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:backgroundTint="@color/material_on_primary_emphasis_high_type"
-                android:text="X"
+                android:text="x"
                 android:textColor="@color/material_on_surface_emphasis_high_type"
                 android:textSize="18sp" />
         </TableRow>
