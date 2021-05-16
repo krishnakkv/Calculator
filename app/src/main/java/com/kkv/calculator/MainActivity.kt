@@ -12,7 +12,9 @@ class MainActivity : AppCompatActivity() {
     var new:Boolean = true
     var operator: Boolean =false
     var opList= mutableListOf<String>()
+    var opMap= mutableMapOf<String,Int>("÷" to 0,"x" to 0,"+" to 0,"—" to 0)
     var numList= mutableListOf<String>()
+    var zeroError=false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -20,6 +22,8 @@ class MainActivity : AppCompatActivity() {
 
         lateinit var memory: String
         lateinit var question: String
+
+        Log.d("Main","opMap test at start $opMap ${opMap.keys}")
 
         clickListeners()
 
@@ -93,7 +97,7 @@ class MainActivity : AppCompatActivity() {
             exp.text=operatorFun(bDivide.text.toString())
         }
         bPercent.setOnClickListener {
-            exp.text=operatorFun(bPercent.text.toString())
+            // need to divide the number by 100
         }
         bAC.setOnClickListener {
             result.text="0"
@@ -102,18 +106,27 @@ class MainActivity : AppCompatActivity() {
             operator=false
             opList.clear()
             numList.clear()
+            opMap.clear()
+            opMap["÷"] = 0
+            opMap["x"] = 0
+            opMap["+"] = 0
+            opMap["—"] = 0
         }
         bEquals.setOnClickListener {
             // function to execute the question var to be added in all digits and here
+            result.text=calc()
         }
         bClear.setOnClickListener {
             var c1=exp.text.toString()
             if (c1=="")
                 return@setOnClickListener
-            if (c1.last() in arrayOf('+','—','x','÷','%')){
+            if (c1.last() in arrayOf('+','—','x','÷')){
+                var tempR:Int = opMap[opList.last()]!!
+                opMap[opList.last()]=tempR - 1
                 opList.removeLast()
                 new=false
                 Log.d("Main","oplist is updated by clear button ${opList}")
+                Log.d("Main","opMap updated ${opMap}")
             }
             else if (c1.last() in arrayOf('1','2','3','4','5','6','7','8','9','0')){
                 var temp:String =numList.last()
@@ -122,9 +135,11 @@ class MainActivity : AppCompatActivity() {
                 if (temp != ""){
                     numList.add(temp)
                 }
-                new=true
-
+                else {
+                    new = true
+                }
                 Log.d("Main","numList updated from clear ${numList}")
+                Log.d("Main","opMap updated ${opMap}")
             }
             if (c1.length == 1) {
                 exp.text =""
@@ -132,8 +147,8 @@ class MainActivity : AppCompatActivity() {
             else{
                 exp.text = c1.take(c1.length - 1)
             }
-            operator=false
-
+            result.text=calc()
+            operator = new
         }
         bDot.setOnClickListener {
             exp.text=exp.text.toString()+bDot.text.toString()
@@ -141,19 +156,31 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun operatorFun(inputText: String): CharSequence? {
-        val result:TextView = findViewById(R.id.result)
         val exp:TextView = findViewById(R.id.expression)
+        if (numList.isEmpty()){
+            Log.d("Main","Operator used without number! entering 0")
+            numList.add("0")
+            exp.text="0"
+        }
         new=true
         if (!operator){
+            var temp: Int = opMap[inputText]?:0
             operator = true
             opList.add((inputText))
             Log.d("Main","oplist is updated: ${opList}")
+            opMap[inputText]= temp +1
+            Log.d("Main","opMap updated ${opMap}")
             return exp.text.toString()+inputText
         }
         else{
+            var tempR:Int = opMap[opList.last()]!!
+            opMap[opList.last()]=tempR - 1
             opList.removeLast()
+            var temp: Int = opMap[inputText]?:0
             opList.add(inputText)
+            opMap[inputText]=temp +1
             Log.d("Main","oplist else updated: ${opList}")
+            Log.d("Main","opMap updated ${opMap}")
             return exp.text.toString().take(exp.text.length - 1) + inputText
         }
 
@@ -176,9 +203,71 @@ class MainActivity : AppCompatActivity() {
         }
         operator=false
         val temp : String = exp.text.toString()+inputText
-        if(exp.text.toString().take(1) == "0"){
+        if(exp.text.toString().take(1) == "0" && opList.isEmpty()){
             return temp.takeLast(temp.length -1)
         }
+        result.text=calc()
         return temp
+    }
+
+    private fun calc(): String {
+        var tempOpMap = opMap.toMutableMap()
+        var tempNumList = numList.toMutableList()
+        var tempOpList = opList.toMutableList()
+        if (opList.size == numList.size){
+            var del=tempOpMap[tempOpList.last()]
+            tempOpMap[tempOpList.last()]=(del?:1)-1
+            tempOpList.removeLast()
+        }
+        for(key in tempOpMap.keys){
+            Log.d("Main","Iterating through the keys $key")
+            if (tempOpMap[key]!=0){
+                var countIndex:Int = 0
+                while (tempOpMap[key]!=0) {
+                    if (tempOpList[countIndex] != key) {
+                        countIndex += 1
+                    } else {
+                        Log.d("Main", "operator $key is at index $countIndex")
+                        var result = calculate(tempNumList[countIndex].toInt(), tempNumList[countIndex + 1].toInt(), tempOpList[countIndex])
+                        if (zeroError){
+                            return "division by Zero!"
+                        }
+                        tempOpList.removeAt(countIndex)
+                        tempNumList.removeAt(countIndex)
+                        tempNumList[countIndex] = result
+                        Log.d("Main", "after removal of element the temp list are $tempNumList and $tempOpList")
+                        Log.d("Main", "after removal of element the main list are $numList and $opList")
+                        var tempOp: Int? = tempOpMap[key]?:1
+                        tempOpMap[key] = tempOp!! - 1
+                    }
+                }
+            }
+        }
+        return tempNumList[0]
+    }
+
+    private fun calculate(n1:Int,n2:Int, op:String): String{
+        if (op=="÷"){
+            Log.d("Main","calculated the value for division ")
+            if (n2==0){
+                zeroError=true
+                return 1.toString()
+            }
+            return ((n1/n2).toString())
+        }
+        else if (op=="x"){
+            Log.d("Main","calculated the value for multiplication ${n1 * n2}")
+            return "${n1*n2}"
+        }
+        else if (op=="+"){
+            Log.d("Main","calculated the value for Addition ${n1 + n2}")
+            return "${n1+n2}"
+        }
+        else if (op=="—"){
+            Log.d("Main","calculated the value for Substraction ${n1 - n2}")
+            return "${n1-n2}"
+        }
+        else
+            return ""
     }
 }
