@@ -29,7 +29,7 @@ class MainActivity : AppCompatActivity() {
     private fun clickListeners() {
 
         val result:TextView = findViewById(R.id.result)
-        val exp:TextView = findViewById(R.id.expression)
+        val expression:TextView = findViewById(R.id.expression)
 
         val b1: Button = findViewById(R.id.one)
         val b2: Button = findViewById(R.id.two)
@@ -52,62 +52,62 @@ class MainActivity : AppCompatActivity() {
         val bAC: Button = findViewById(R.id.ac)
 
         b1.setOnClickListener {
-            exp.text=outText(b1.text.toString())
+            outText(b1.text.toString())
         }
         b2.setOnClickListener {
-            exp.text=outText(b2.text.toString())
+            outText(b2.text.toString())
         }
         b3.setOnClickListener {
-            exp.text=outText(b3.text.toString())
+            outText(b3.text.toString())
         }
         b4.setOnClickListener {
-            exp.text=outText(b4.text.toString())
+            outText(b4.text.toString())
         }
         b5.setOnClickListener {
-            exp.text=outText(b5.text.toString())
+            outText(b5.text.toString())
         }
         b6.setOnClickListener {
-            exp.text=outText(b6.text.toString())
+            outText(b6.text.toString())
         }
         b7.setOnClickListener {
-            exp.text=outText(b7.text.toString())
+            outText(b7.text.toString())
         }
         b8.setOnClickListener {
-            exp.text=outText(b8.text.toString())
+            outText(b8.text.toString())
         }
         b9.setOnClickListener {
-            exp.text=outText(b9.text.toString())
+            outText(b9.text.toString())
         }
         b0.setOnClickListener {
-            exp.text=outText(b0.text.toString())
+            outText(b0.text.toString())
         }
         bAdd.setOnClickListener {
-            exp.text=operatorFun(bAdd.text.toString())
+            operatorFun(bAdd.text.toString())
         }
         bSubtract.setOnClickListener {
-            exp.text=operatorFun(bSubtract.text.toString())
+            operatorFun(bSubtract.text.toString())
         }
         bMultiply.setOnClickListener {
-            exp.text=operatorFun(bMultiply.text.toString())
+            operatorFun(bMultiply.text.toString())
         }
         bDivide.setOnClickListener {
-            exp.text=operatorFun(bDivide.text.toString())
+            operatorFun(bDivide.text.toString())
         }
         bPercent.setOnClickListener {
             // need to divide the number by 100
-            if (numList.isNotEmpty()){
+            if (numList.isNotEmpty() && !operator){
                 var temp1=numList.last()
                 Log.d("Main","Percent clicked last value of numList is $temp1")
                 numList.remove(temp1)
                 temp1="${temp1.toDouble()/100.0}"
                 numList.add(temp1)
                 result.text=calc()
-
+                expression.text=getExp()
             }
         }
         bAC.setOnClickListener {
             result.text="0"
-            exp.text=""
+            expression.text=""
             new=true
             operator=false
             zeroError=false
@@ -124,9 +124,9 @@ class MainActivity : AppCompatActivity() {
             result.text=calc()
         }
         bClear.setOnClickListener {
-            val c1=exp.text.toString()
-            if (c1=="")
+            if (numList.size==0)
                 return@setOnClickListener
+            val c1=expression.text
             if (c1.last() in arrayOf('+','—','x','÷')){
                 val tempR:Int = opMap[opList.last()]!!
                 opMap[opList.last()]=tempR - 1
@@ -149,26 +149,45 @@ class MainActivity : AppCompatActivity() {
                 Log.d("Main","opMap updated $opMap")
             }
             if (c1.length == 1) {
-                exp.text =""
                 result.text ="0"
             }
             else{
-                exp.text = c1.take(c1.length - 1)
+                expression.text=getExp()
                 result.text=calc()
             }
             operator = new
         }
         bDot.setOnClickListener {
-            exp.text=exp.text.toString()+bDot.text.toString()
+            //
         }
     }
 
-    private fun operatorFun(inputText: String): CharSequence {
-        val exp:TextView = findViewById(R.id.expression)
+    private fun getExp(): CharSequence {
+        var count=0
+        var tempExp=""
+        while (true){
+            if (numList.size<=count || numList.size==0){
+                Log.d("Main","Loop breaks at $count")
+                break
+            }
+            Log.d("Main","loop $count , $tempExp")
+            tempExp += numList[count]
+            if (opList.size<=count || opList.size==0){
+                Log.d("Main","Loop breaks at $count")
+                break
+            }
+            Log.d("Main","loop $count , $tempExp")
+            tempExp += opList[count]
+            count+=1
+        }
+        return tempExp
+    }
+
+    private fun operatorFun(inputText: String) {
+        val expression:TextView = findViewById(R.id.expression)
         if (numList.isEmpty()){
             Log.d("Main","Operator used without number! entering 0")
             numList.add("0")
-            exp.text="0"
         }
         new=true
         if (!operator){
@@ -178,7 +197,7 @@ class MainActivity : AppCompatActivity() {
             Log.d("Main","oplist is updated: $opList")
             opMap[inputText]= temp +1
             Log.d("Main","opMap updated $opMap")
-            return exp.text.toString()+inputText
+            expression.text=getExp()
         }
         else{
             val tempR:Int = opMap[opList.last()]!!
@@ -189,14 +208,14 @@ class MainActivity : AppCompatActivity() {
             opMap[inputText]=temp +1
             Log.d("Main","oplist else updated: $opList")
             Log.d("Main","opMap updated $opMap")
-            return exp.text.toString().take(exp.text.length - 1) + inputText
+            expression.text=getExp()
         }
 
     }
 
-    private fun outText(inputText: String): CharSequence {
+    private fun outText(inputText: String) {
         val result:TextView = findViewById(R.id.result)
-        val exp:TextView = findViewById(R.id.expression)
+        val expression:TextView = findViewById(R.id.expression)
         if (new){
             numList.add(inputText)
             Log.d("Main","numList updated though adding $numList")
@@ -209,12 +228,8 @@ class MainActivity : AppCompatActivity() {
             Log.d("Main","numList updated though adding in else $numList")
         }
         operator=false
-        val temp : String = exp.text.toString()+inputText
-        if(exp.text.toString().take(1) == "0" && opList.isEmpty()){
-            return temp.takeLast(temp.length -1)
-        }
         result.text=calc()
-        return temp
+        expression.text=getExp()
     }
 
     private fun calc(): String {
@@ -272,7 +287,7 @@ class MainActivity : AppCompatActivity() {
                 return "${n1+n2}"
             }
             "—" -> {
-                Log.d("Main","calculated the value for Substraction ${n1 - n2}")
+                Log.d("Main","calculated the value for Subtraction ${n1 - n2}")
                 return "${n1-n2}"
             }
             else -> return ""
