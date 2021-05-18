@@ -5,21 +5,24 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.TextView
+import java.math.BigDecimal
 
 
 class MainActivity : AppCompatActivity() {
 
-    var new:Boolean = true
-    var operator: Boolean =false
-    var opList= mutableListOf<String>()
-    var numList= mutableListOf<String>()
+    private var new:Boolean = true
+    private var operator: Boolean =false
+    private var opList= mutableListOf<String>()
+    private var opMap= mutableMapOf("÷" to 0,"x" to 0,"+" to 0,"—" to 0)
+    private var numList= mutableListOf<String>()
+    private var zeroError=false
+    private var dot=false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        lateinit var memory: String
-        lateinit var question: String
+        Log.d("Main","opMap test at start $opMap ${opMap.keys}")
 
         clickListeners()
 
@@ -28,7 +31,7 @@ class MainActivity : AppCompatActivity() {
     private fun clickListeners() {
 
         val result:TextView = findViewById(R.id.result)
-        val exp:TextView = findViewById(R.id.expression)
+        val expression:TextView = findViewById(R.id.expression)
 
         val b1: Button = findViewById(R.id.one)
         val b2: Button = findViewById(R.id.two)
@@ -51,134 +54,292 @@ class MainActivity : AppCompatActivity() {
         val bAC: Button = findViewById(R.id.ac)
 
         b1.setOnClickListener {
-            exp.text=outText(b1.text.toString())
+            outText(b1.text.toString())
         }
         b2.setOnClickListener {
-            exp.text=outText(b2.text.toString())
+            outText(b2.text.toString())
         }
         b3.setOnClickListener {
-            exp.text=outText(b3.text.toString())
+            outText(b3.text.toString())
         }
         b4.setOnClickListener {
-            exp.text=outText(b4.text.toString())
+            outText(b4.text.toString())
         }
         b5.setOnClickListener {
-            exp.text=outText(b5.text.toString())
+            outText(b5.text.toString())
         }
         b6.setOnClickListener {
-            exp.text=outText(b6.text.toString())
+            outText(b6.text.toString())
         }
         b7.setOnClickListener {
-            exp.text=outText(b7.text.toString())
+            outText(b7.text.toString())
         }
         b8.setOnClickListener {
-            exp.text=outText(b8.text.toString())
+            outText(b8.text.toString())
         }
         b9.setOnClickListener {
-            exp.text=outText(b9.text.toString())
+            outText(b9.text.toString())
         }
         b0.setOnClickListener {
-            exp.text=outText(b0.text.toString())
+            outText(b0.text.toString())
         }
         bAdd.setOnClickListener {
-            exp.text=operatorFun(bAdd.text.toString())
+            operatorFun(bAdd.text.toString())
         }
         bSubtract.setOnClickListener {
-            exp.text=operatorFun(bSubtract.text.toString())
+            operatorFun(bSubtract.text.toString())
         }
         bMultiply.setOnClickListener {
-            exp.text=operatorFun(bMultiply.text.toString())
+            operatorFun(bMultiply.text.toString())
         }
         bDivide.setOnClickListener {
-            exp.text=operatorFun(bDivide.text.toString())
+            operatorFun(bDivide.text.toString())
         }
         bPercent.setOnClickListener {
-            exp.text=operatorFun(bPercent.text.toString())
+            // need to divide the number by 100
+            if (numList.isNotEmpty() && !operator){
+                var temp1=numList.last().toBigDecimal()
+                Log.d("Main","Percent clicked last value of numList is $temp1")
+                numList.removeLast()
+                temp1 = temp1.divide(100.toBigDecimal())
+                Log.d("Main","The temp contains $temp1")
+                numList.add("$temp1")
+                dot=('.' in temp1.toString())
+                result.text=calc()
+                expression.text=getExp()
+            }
         }
         bAC.setOnClickListener {
             result.text="0"
-            exp.text=""
+            expression.text=""
             new=true
             operator=false
+            zeroError=false
+            dot=false
             opList.clear()
             numList.clear()
+            opMap.clear()
+            opMap["÷"] = 0
+            opMap["x"] = 0
+            opMap["+"] = 0
+            opMap["—"] = 0
         }
         bEquals.setOnClickListener {
             // function to execute the question var to be added in all digits and here
+            result.text=calc()
         }
         bClear.setOnClickListener {
-            var c1=exp.text.toString()
-            if (c1=="")
+            if (numList.size==0)
                 return@setOnClickListener
-            if (c1.last() in arrayOf('+','—','x','÷','%')){
+            val c1=expression.text
+            if (operator){
+                val tempR:Int = opMap[opList.last()]!!
+                opMap[opList.last()]=tempR - 1
                 opList.removeLast()
                 new=false
-                Log.d("Main","oplist is updated by clear button ${opList}")
-            }
-            else if (c1.last() in arrayOf('1','2','3','4','5','6','7','8','9','0')){
-                var temp:String =numList.last()
-                temp=temp.take(temp.length-1)
-                numList.removeLast()
-                if (temp != ""){
-                    numList.add(temp)
-                }
-                new=true
-
-                Log.d("Main","numList updated from clear ${numList}")
-            }
-            if (c1.length == 1) {
-                exp.text =""
+                Log.d("Main","oplist is updated by clear button $opList")
+                Log.d("Main","opMap updated $opMap")
+                dot = '.' in numList.last()
             }
             else{
-                exp.text = c1.take(c1.length - 1)
-            }
-            operator=false
+                var temp: String = numList.last()
+                Log.d("Main","the value in temp is $temp")
+                temp = temp.take(temp.length - 1)
+                numList.removeLast()
+                if (temp != "") {
+                    numList.add(temp)
+                    dot='.' in temp
+                } else {
+                    new = true
+                }
+                Log.d("Main","numList updated from clear $numList")
+                Log.d("Main","opMap updated $opMap")
 
+            }
+
+            if (c1.length == 1) {
+                expression.text=""
+                result.text ="0"
+            }
+            else{
+                expression.text=getExp()
+                result.text=calc()
+            }
+            operator = new
         }
         bDot.setOnClickListener {
-            exp.text=exp.text.toString()+bDot.text.toString()
+            if (!dot && !operator){
+                if (numList.size==0){
+                    numList.add("0")
+                }
+                var temp=numList.last()
+                temp+="."
+                dot=true
+                numList.removeLast()
+                numList.add(temp)
+                expression.text=getExp()
+            }
         }
     }
 
-    private fun operatorFun(inputText: String): CharSequence? {
-        val result:TextView = findViewById(R.id.result)
-        val exp:TextView = findViewById(R.id.expression)
+    private fun getExp(): CharSequence {
+        var count=0
+        var tempExp=""
+        while (true){
+            if (numList.size<=count || numList.size==0){
+                Log.d("Main","Loop breaks at $count")
+                break
+            }
+            Log.d("Main","loop $count , $tempExp")
+            tempExp += numList[count]
+            if (opList.size<=count || opList.size==0){
+                Log.d("Main","Loop breaks at $count")
+                break
+            }
+            Log.d("Main","loop $count , $tempExp")
+            tempExp += opList[count]
+            count+=1
+        }
+        return tempExp
+    }
+
+    private fun operatorFun(inputText: String) {
+        val expression:TextView = findViewById(R.id.expression)
+        if (numList.isEmpty()){
+            Log.d("Main","Operator used without number! entering 0")
+            numList.add("0")
+        }
         new=true
+        dot=false
         if (!operator){
+            val temp: Int = opMap[inputText]?:0
             operator = true
             opList.add((inputText))
-            Log.d("Main","oplist is updated: ${opList}")
-            return exp.text.toString()+inputText
+            Log.d("Main","oplist is updated: $opList")
+            opMap[inputText]= temp +1
+            Log.d("Main","opMap updated $opMap")
+            expression.text=getExp()
         }
         else{
+            val tempR:Int = opMap[opList.last()]!!
+            opMap[opList.last()]=tempR - 1
             opList.removeLast()
+            val temp: Int = opMap[inputText]?:0
             opList.add(inputText)
-            Log.d("Main","oplist else updated: ${opList}")
-            return exp.text.toString().take(exp.text.length - 1) + inputText
+            opMap[inputText]=temp +1
+            Log.d("Main","oplist else updated: $opList")
+            Log.d("Main","opMap updated $opMap")
+            expression.text=getExp()
         }
 
     }
 
-    private fun outText(inputText: String): CharSequence {
+    private fun outText(inputText: String) {
         val result:TextView = findViewById(R.id.result)
-        val exp:TextView = findViewById(R.id.expression)
+        val expression:TextView = findViewById(R.id.expression)
         if (new){
             numList.add(inputText)
-            Log.d("Main","numList updated though adding ${numList}")
+            Log.d("Main","numList updated though adding $numList")
             new=false
         }
         else{
-            var useless:String=""
-            useless=numList.last()+inputText
+            val useless: String = numList.last()+inputText
             numList.removeLast()
             numList.add(useless)
-            Log.d("Main","numList updated though adding in else ${numList}")
+            Log.d("Main","numList updated though adding in else $numList")
         }
         operator=false
-        val temp : String = exp.text.toString()+inputText
-        if(exp.text.toString().take(1) == "0"){
-            return temp.takeLast(temp.length -1)
+        result.text=calc()
+        expression.text=getExp()
+    }
+
+    private fun calc(): String {
+        val tempOpMap = opMap.toMutableMap()
+        val tempNumList = numList.toMutableList()
+        val tempOpList = opList.toMutableList()
+        if (numList.isEmpty()){
+            return "0"
         }
-        return temp
+        if (opList.size == numList.size){
+            val del=tempOpMap[tempOpList.last()]
+            tempOpMap[tempOpList.last()]=(del?:1)-1
+            tempOpList.removeLast()
+        }
+        for(key in tempOpMap.keys){
+            Log.d("Main","Iterating through the keys $key")
+            if (tempOpMap[key]!=0){
+                var countIndex = 0
+                var opPrevious = ""
+                while (tempOpMap[key]!=0) {
+                    if (tempOpList[countIndex] != key) {
+                        countIndex += 1
+                    } else {
+                        Log.d("Main", "operator $key is at index $countIndex")
+                        if (countIndex>0){
+                            opPrevious=tempOpList[countIndex-1]
+                        }
+                        val result = calculate(tempNumList[countIndex].toBigDecimal(), tempNumList[countIndex + 1].toBigDecimal(), tempOpList[countIndex],opPrevious)
+                        if (zeroError){
+                            return "Division by Zero!"
+                        }
+                        tempOpList.removeAt(countIndex)
+                        tempNumList.removeAt(countIndex)
+                        tempNumList[countIndex] = result
+                        Log.d("Main", "after removal of element the temp list are $tempNumList and $tempOpList")
+                        Log.d("Main", "after removal of element the main list are $numList and $opList")
+                        val tempOp: Int = tempOpMap[key]?:1
+                        tempOpMap[key] = tempOp - 1
+                    }
+                }
+            }
+        }
+        var zeroRemove=tempNumList[0]
+        if ('.' in zeroRemove){
+            while (zeroRemove.last()=='0') {
+                zeroRemove = zeroRemove.take(zeroRemove.length - 1)
+            }
+            if (zeroRemove.last()=='.'){
+                zeroRemove = zeroRemove.take(zeroRemove.length - 1)
+            }
+        }
+        return zeroRemove
+    }
+
+    private fun calculate(n1:BigDecimal,n2:BigDecimal, op:String,op0:String): String{
+        when (op) {
+            "÷" -> {
+                Log.d("Main","calculated the value for division ")
+                if (n2.equals(0.0)){
+                    zeroError=true
+                    return 1.toString()
+                }
+                var div=(n1.divide(n2,8, BigDecimal.ROUND_HALF_UP)).toString()
+                while (div.last()=='0' || div.last()=='.'){
+                    div=div.take(div.length-1)
+                }
+                return div
+            }
+            "x" -> {
+                Log.d("Main","calculated the value for multiplication ${n1 * n2}")
+                return "${n1.multiply(n2)}"
+            }
+            "+" -> {
+                if (op0=="—"){
+                    if (n2>n1){
+                        Log.d("Main","calculated the value for Addition with -ve n2>n1  -${(n2-n1)}")
+                        return "-${n2-n1}"
+                    }
+                    Log.d("Main","calculated the value for Addition with -ve ${n1-n2}")
+                    return "${(n1-n2)}"
+                }
+                Log.d("Main","calculated the value for Addition ${n1 + n2}")
+                return "${n1+n2}"
+            }
+            "—" -> {
+                Log.d("Main","calculated the value for Subtraction ${n1 - n2}")
+                return "${n1-n2}"
+            }
+            else -> return ""
+        }
     }
 }
