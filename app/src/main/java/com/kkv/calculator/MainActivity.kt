@@ -5,16 +5,17 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.TextView
+import java.math.BigDecimal
 
 
 class MainActivity : AppCompatActivity() {
 
-    var new:Boolean = true
-    var operator: Boolean =false
-    var opList= mutableListOf<String>()
-    var opMap= mutableMapOf("÷" to 0,"x" to 0,"+" to 0,"—" to 0)
-    var numList= mutableListOf<String>()
-    var zeroError=false
+    private var new:Boolean = true
+    private var operator: Boolean =false
+    private var opList= mutableListOf<String>()
+    private var opMap= mutableMapOf("÷" to 0,"x" to 0,"+" to 0,"—" to 0)
+    private var numList= mutableListOf<String>()
+    private var zeroError=false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -96,11 +97,12 @@ class MainActivity : AppCompatActivity() {
         bPercent.setOnClickListener {
             // need to divide the number by 100
             if (numList.isNotEmpty() && !operator){
-                var temp1=numList.last()
+                var temp1=numList.last().toBigDecimal()
                 Log.d("Main","Percent clicked last value of numList is $temp1")
-                numList.remove(temp1)
-                temp1="${temp1.toDouble()/100.0}"
-                numList.add(temp1)
+                numList.removeLast()
+                temp1 = temp1.divide(100.toBigDecimal())
+                Log.d("Main","The temp contains $temp1")
+                numList.add("$temp1")
                 result.text=calc()
                 expression.text=getExp()
             }
@@ -127,7 +129,7 @@ class MainActivity : AppCompatActivity() {
             if (numList.size==0)
                 return@setOnClickListener
             val c1=expression.text
-            if (c1.last() in arrayOf('+','—','x','÷')){
+            if (operator){
                 val tempR:Int = opMap[opList.last()]!!
                 opMap[opList.last()]=tempR - 1
                 opList.removeLast()
@@ -135,20 +137,22 @@ class MainActivity : AppCompatActivity() {
                 Log.d("Main","oplist is updated by clear button $opList")
                 Log.d("Main","opMap updated $opMap")
             }
-            else if (c1.last() in arrayOf('1','2','3','4','5','6','7','8','9','0')){
-                var temp:String =numList.last()
-                temp=temp.take(temp.length-1)
+            else{
+                var temp: String = numList.last().toBigDecimal().toString()
+                temp = temp.take(temp.length - 1)
                 numList.removeLast()
-                if (temp != ""){
+                if (temp != "") {
                     numList.add(temp)
-                }
-                else {
+                } else {
                     new = true
                 }
                 Log.d("Main","numList updated from clear $numList")
                 Log.d("Main","opMap updated $opMap")
+
             }
+
             if (c1.length == 1) {
+                expression.text=""
                 result.text ="0"
             }
             else{
@@ -236,6 +240,9 @@ class MainActivity : AppCompatActivity() {
         val tempOpMap = opMap.toMutableMap()
         val tempNumList = numList.toMutableList()
         val tempOpList = opList.toMutableList()
+        if (numList.isEmpty()){
+            return "0"
+        }
         if (opList.size == numList.size){
             val del=tempOpMap[tempOpList.last()]
             tempOpMap[tempOpList.last()]=(del?:1)-1
@@ -245,14 +252,18 @@ class MainActivity : AppCompatActivity() {
             Log.d("Main","Iterating through the keys $key")
             if (tempOpMap[key]!=0){
                 var countIndex = 0
+                var opPrevious = ""
                 while (tempOpMap[key]!=0) {
                     if (tempOpList[countIndex] != key) {
                         countIndex += 1
                     } else {
                         Log.d("Main", "operator $key is at index $countIndex")
-                        val result = calculate(tempNumList[countIndex].toDouble(), tempNumList[countIndex + 1].toDouble(), tempOpList[countIndex])
+                        if (countIndex>0){
+                            opPrevious=tempOpList[countIndex-1]
+                        }
+                        val result = calculate(tempNumList[countIndex].toBigDecimal(), tempNumList[countIndex + 1].toBigDecimal(), tempOpList[countIndex],opPrevious)
                         if (zeroError){
-                            return "division by Zero!"
+                            return "Division by Zero!"
                         }
                         tempOpList.removeAt(countIndex)
                         tempNumList.removeAt(countIndex)
@@ -265,24 +276,45 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-        return tempNumList[0]
+        var zeroRemove=tempNumList[0]
+        if ('.' in zeroRemove){
+            while (zeroRemove.last()=='0') {
+                zeroRemove = zeroRemove.take(zeroRemove.length - 1)
+            }
+            if (zeroRemove.last()=='.'){
+                zeroRemove = zeroRemove.take(zeroRemove.length - 1)
+            }
+        }
+        return zeroRemove
     }
 
-    private fun calculate(n1:Double,n2:Double, op:String): String{
+    private fun calculate(n1:BigDecimal,n2:BigDecimal, op:String,op0:String): String{
         when (op) {
             "÷" -> {
                 Log.d("Main","calculated the value for division ")
-                if (n2==0.0){
+                if (n2.equals(0.0)){
                     zeroError=true
                     return 1.toString()
                 }
-                return ((n1/n2).toString())
+                var div=(n1.divide(n2,8, BigDecimal.ROUND_HALF_UP)).toString()
+                while (div.last()=='0' || div.last()=='.'){
+                    div=div.take(div.length-1)
+                }
+                return div
             }
             "x" -> {
                 Log.d("Main","calculated the value for multiplication ${n1 * n2}")
-                return "${n1*n2}"
+                return "${n1.multiply(n2)}"
             }
             "+" -> {
+                if (op0=="—"){
+                    if (n2>n1){
+                        Log.d("Main","calculated the value for Addition with -ve n2>n1  -${(n2-n1)}")
+                        return "-${n2-n1}"
+                    }
+                    Log.d("Main","calculated the value for Addition with -ve ${n1-n2}")
+                    return "${(n1-n2)}"
+                }
                 Log.d("Main","calculated the value for Addition ${n1 + n2}")
                 return "${n1+n2}"
             }
