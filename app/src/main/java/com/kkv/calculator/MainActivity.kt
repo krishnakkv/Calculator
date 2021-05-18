@@ -16,6 +16,7 @@ class MainActivity : AppCompatActivity() {
     private var opMap= mutableMapOf("÷" to 0,"x" to 0,"+" to 0,"—" to 0)
     private var numList= mutableListOf<String>()
     private var zeroError=false
+    private var dot=false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -103,6 +104,7 @@ class MainActivity : AppCompatActivity() {
                 temp1 = temp1.divide(100.toBigDecimal())
                 Log.d("Main","The temp contains $temp1")
                 numList.add("$temp1")
+                dot=('.' in temp1.toString())
                 result.text=calc()
                 expression.text=getExp()
             }
@@ -113,6 +115,7 @@ class MainActivity : AppCompatActivity() {
             new=true
             operator=false
             zeroError=false
+            dot=false
             opList.clear()
             numList.clear()
             opMap.clear()
@@ -136,13 +139,16 @@ class MainActivity : AppCompatActivity() {
                 new=false
                 Log.d("Main","oplist is updated by clear button $opList")
                 Log.d("Main","opMap updated $opMap")
+                dot = '.' in numList.last()
             }
             else{
-                var temp: String = numList.last().toBigDecimal().toString()
+                var temp: String = numList.last()
+                Log.d("Main","the value in temp is $temp")
                 temp = temp.take(temp.length - 1)
                 numList.removeLast()
                 if (temp != "") {
                     numList.add(temp)
+                    dot='.' in temp
                 } else {
                     new = true
                 }
@@ -162,7 +168,17 @@ class MainActivity : AppCompatActivity() {
             operator = new
         }
         bDot.setOnClickListener {
-            //
+            if (!dot && !operator){
+                if (numList.size==0){
+                    numList.add("0")
+                }
+                var temp=numList.last()
+                temp+="."
+                dot=true
+                numList.removeLast()
+                numList.add(temp)
+                expression.text=getExp()
+            }
         }
     }
 
@@ -194,6 +210,7 @@ class MainActivity : AppCompatActivity() {
             numList.add("0")
         }
         new=true
+        dot=false
         if (!operator){
             val temp: Int = opMap[inputText]?:0
             operator = true
