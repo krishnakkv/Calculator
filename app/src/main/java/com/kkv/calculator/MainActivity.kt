@@ -81,7 +81,9 @@ class MainActivity : AppCompatActivity() {
             outText(b9.text.toString())
         }
         b0.setOnClickListener {
-            outText(b0.text.toString())
+            if (numList.isEmpty() || new || numList.last()!="0") {
+                outText(b0.text.toString())
+            }
         }
         bAdd.setOnClickListener {
             operatorFun(bAdd.text.toString())
@@ -243,6 +245,9 @@ class MainActivity : AppCompatActivity() {
             new=false
         }
         else{
+            if (inputText!="0"){
+                zeroError=false
+            }
             val useless: String = numList.last()+inputText
             numList.removeLast()
             numList.add(useless)
@@ -309,13 +314,20 @@ class MainActivity : AppCompatActivity() {
         when (op) {
             "÷" -> {
                 Log.d("Main","calculated the value for division ")
-                if (n2.equals(0.0)){
+                var div = try {
+                    (n1.divide(n2, 8, BigDecimal.ROUND_HALF_UP)).toString()
+                }catch (exception: ArithmeticException){
                     zeroError=true
-                    return 1.toString()
+                    return ""
                 }
-                var div=(n1.divide(n2,8, BigDecimal.ROUND_HALF_UP)).toString()
-                while (div.last()=='0' || div.last()=='.'){
-                    div=div.take(div.length-1)
+                Log.d("Main","the value in division is $div")
+                if ('.' in div) {
+                    while (div.last() == '0') {
+                        div = div.take(div.length - 1)
+                    }
+                    if (div.last() == '.'){
+                        div = div.take(div.length - 1)
+                    }
                 }
                 return div
             }
