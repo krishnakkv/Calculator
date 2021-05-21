@@ -139,7 +139,7 @@ class MainActivity : AppCompatActivity() {
                 opMap[opList.last()]=tempR - 1
                 opList.removeLast()
                 new=false
-                Log.d("Main","oplist is updated by clear button $opList")
+                Log.d("Main","opList is updated by clear button $opList")
                 Log.d("Main","opMap updated $opMap")
                 dot = '.' in numList.last()
             }
@@ -170,9 +170,10 @@ class MainActivity : AppCompatActivity() {
             operator = new
         }
         bDot.setOnClickListener {
-            if (!dot && !operator){
-                if (numList.size==0){
+            if (!dot){
+                if (new){
                     numList.add("0")
+                    new=false
                 }
                 var temp=numList.last()
                 temp+="."
